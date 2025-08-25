@@ -1,6 +1,6 @@
 // Lab 5
 // Marwa Kousar
-// Student ID: 501159935
+
 /*
 This program uses the Arduino’s ADC (Analog-to-Digital Converter) and digital I/O 
 to interface with a joystick and control five LEDs based on the joystick’s position 
