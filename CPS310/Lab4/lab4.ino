@@ -1,6 +1,6 @@
 // Lab 4
-// Marwa Kousar 
-// Student ID: 501159935
+// Marwa Kousar
+// Student ID: 
 // This program uses inline AVR assembly to control a 7-segment display that's wired to Arduino pins D0 through D6. It lights up the correct segments to show the numbers 0 to 9, one at a time. The setup() function sets all the display pins as outputs, and the loop() cycles through each number. After every digit is shown, a clearnum subroutine turns off all the segments before the next number appears. Each number stays on for one second using the delay() function.
 
 void setup() {
