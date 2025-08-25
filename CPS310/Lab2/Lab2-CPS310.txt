@@ -1,0 +1,95 @@
+	
+! Ques 1
+	.begin
+ 	.org 2048
+prog:
+	ld   [flt], %r1       
+   	srl   %r1, 23, %r2      ! shift right by 23 bits
+    	and   %r2, 0xFF, %r2    
+   	sub   %r2, 127, %r2     ! subtract the bias from the exponent
+   	st    %r2, [exp]       
+	halt
+flt: 0xc14a0000 ! 32-bit float to load
+exp: 0x0 ! store exponent as integer here
+	.end
+	
+
+
+
+! Ques 2
+	.begin
+	.org 2048
+
+prog:
+    	ld [base], %r1       
+    	ld [exp], %r2        
+
+    	
+    	mov 1, %r3           ! %r3 will hold the result initialize to 1
+
+    	cmp %r2, 0           ! Compare exponent with 0
+    	be done              ! If exponent is 0, result is 1 
+
+loop:
+    	mov %r3, %r4         ! Copy current result to %r4
+    	mov 0, %r5           ! Initialize loop counter for multiplication
+    	mov 0, %r6           ! Store multiplication result here
+
+multiply_loop:
+    	add %r6, %r4, %r6    
+    	add %r5, 1, %r5      ! Increment loop counter
+    	cmp %r5, %r1         ! Compare loop counter with base
+    	bl multiply_loop     ! If loop counter is less than base continue adding
+
+    	mov %r6, %r3         
+    	sub %r2, 1, %r2      ! Decrement exponent by 1
+
+    	cmp %r2, 0           ! Compare exponent with 0
+    	bne loop             ! If exponent is not 0, repeat
+
+done:
+    	st %r3, [res]     
+    	halt
+
+base: 4                  ! Here, we’re calculating
+exp: 7                   ! 4 to the power of 7 (47)
+res: 0                   ! Should be 16384 when program is done
+
+	.end
+
+
+
+
+
+! Ques 3
+	.begin
+	.org 2048
+
+prog:
+   	ld [x], %r1          
+    	ld [y], %r2         
+
+    	mov 0, %r3           
+
+   	cmp %r2, 0           ! Compare divisor with 0
+    	be done              ! If divisor is 0 jump to done
+
+divide_loop:
+    	cmp %r1, %r2         ! Compare dividend with divisor
+    	bl done              ! If dividend is less than divisor then stop loop
+
+    	sub %r1, %r2, %r1    ! Subtract divisor from dividend
+    	add %r3, 1, %r3      ! Increment quotient
+    	ba divide_loop       ! Repeat
+
+done:
+    	st %r3, [quot]       
+    	st %r1, [rem]       
+    	halt
+
+x: 8                    ! Here, we’re dividing 8/3 
+y: 3                    
+quot: 0                 ! Integer result would be 2 in this case
+rem: 0                  ! remainder would also be 2
+
+	.end

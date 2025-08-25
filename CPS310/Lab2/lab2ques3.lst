@@ -1,0 +1,46 @@
+(ARCTools Version 2.1.2)
+ HexLoc     DecLoc    MachWord   Label        Instruction                Comment
+                                              .org 2048                  
+                                                                         
+00000800  0000002048            prog:                                    
+                                                                         ! Load dividend (x) and divisor (y) into registers
+00000804  0000002052  c2002840                ld [2112], %r1             ! Load dividend (x) into %r1
+00000808  0000002056  c4002844                ld [2116], %r2             ! Load divisor (y) into %r2
+                                                                         
+                                                                         ! Initialize quotient to 0
+0000080c  0000002060  86102000                or %r0, 0, %r3             ! %r3 will hold the quotient, initialize to 0
+                                                                         
+                                                                         ! Check if divisor is 0 (division by zero)
+00000810  0000002064  80a0a000                subcc %r2, 0, %r0          ! Compare divisor with 0
+00000814  0000002068  02800007                be 7                       ! If divisor is 0, jump to done (avoid division by zero)
+                                                                         
+00000818  0000002072            divide_loop:                             
+0000081c  0000002076  80a04002                subcc %r1, %r2, %r0        ! Compare dividend with divisor
+00000820  0000002080  06800004                bl 4                       ! If dividend < divisor, stop loop
+                                                                         
+00000824  0000002084  82204002                sub %r1, %r2, %r1          ! Subtract divisor from dividend
+00000828  0000002088  8600e001                add %r3, 1, %r3            ! Increment quotient
+0000082c  0000002092  10bffffb                ba -5                      ! Repeat loop
+                                                                         
+00000830  0000002096            done:                                    
+                                                                         ! Store quotient and remainder
+00000834  0000002100  c6202848                st %r3, [2120]             ! Store quotient in quot
+00000838  0000002104  c220284c                st %r1, [2124]             ! Store remainder in rem
+                                                                         
+                                                                         ! End of program
+0000083c  0000002108  ffffffff                halt                       
+                                                                         
+00000840  0000002112  00000008  x:                                       ! Dividend (8)
+00000844  0000002116  00000003  y:                                       ! Divisor (3)
+00000848  0000002120  00000000  quot:                                    ! Quotient will be stored here
+0000084c  0000002124  00000000  rem:                                     ! Remainder will be stored here
+                                                                         
+
+--- Symbol Table ---
+x: 2112
+done: 2096
+quot: 2120
+divide_loop: 2072
+prog: 2048
+rem: 2124
+y: 2116

@@ -1,0 +1,57 @@
+(ARCTools Version 2.1.2)
+ HexLoc     DecLoc    MachWord   Label        Instruction                Comment
+                                              .org 2048                  
+                                                                         
+00000800  0000002048            prog:                                    
+                                                                         ! Load base and exponent into registers
+00000804  0000002052  c2002858                ld [2136], %r1             ! Load base into %r1
+00000808  0000002056  c400285c                ld [2140], %r2             ! Load exponent into %r2
+                                                                         
+                                                                         ! Initialize result to 1 (since any number^0 = 1)
+0000080c  0000002060  86102001                or %r0, 1, %r3             ! %r3 will hold the result, initialize to 1
+                                                                         
+                                                                         ! Check if exponent is 0
+00000810  0000002064  80a0a000                subcc %r2, 0, %r0          ! Compare exponent with 0
+00000814  0000002068  0280000e                be 14                      ! If exponent is 0, result is 1 (already in %r3)
+                                                                         
+00000818  0000002072            loop:                                    
+                                                                         ! Multiply result by base correctly
+0000081c  0000002076  88100003                or %r0, %r3, %r4           ! Copy current result to %r4
+00000820  0000002080  8a102000                or %r0, 0, %r5             ! Initialize loop counter for multiplication
+00000824  0000002084  8c102000                or %r0, 0, %r6             ! Store multiplication result here
+                                                                         
+00000828  0000002088            multiply_loop:                             
+0000082c  0000002092  8c018004                add %r6, %r4, %r6          ! %r6 = %r6 + %r4 (adding result %r4 times)
+00000830  0000002096  8a016001                add %r5, 1, %r5            ! Increment loop counter
+00000834  0000002100  80a14001                subcc %r5, %r1, %r0        ! Compare loop counter with base
+00000838  0000002104  06bffffc                bl -4                      ! If loop counter < base, continue adding
+                                                                         
+0000083c  0000002108  86100006                or %r0, %r6, %r3           ! Store multiplication result in %r3 (final result)
+                                                                         
+                                                                         ! Decrement exponent
+00000840  0000002112  8420a001                sub %r2, 1, %r2            ! Decrement exponent by 1
+                                                                         
+                                                                         ! Check if exponent is greater than 0
+00000844  0000002116  80a0a000                subcc %r2, 0, %r0          ! Compare exponent with 0
+00000848  0000002120  12bffff4                bne -12                    ! If exponent is not 0, repeat loop
+                                                                         
+0000084c  0000002124            done:                                    
+                                                                         ! Store the result in memory location res
+00000850  0000002128  c6202860                st %r3, [2144]             ! Store the result in res
+                                                                         
+                                                                         ! End of program
+00000854  0000002132  ffffffff                halt                       
+                                                                         
+00000858  0000002136  00000004  base:                                    ! Base value (4)
+0000085c  0000002140  00000007  exp:                                     ! Exponent value (7)
+00000860  0000002144  00000000  res:                                     ! Result will be stored here
+                                                                         
+
+--- Symbol Table ---
+done: 2124
+loop: 2072
+multiply_loop: 2088
+res: 2144
+base: 2136
+prog: 2048
+exp: 2140

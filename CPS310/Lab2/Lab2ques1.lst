@@ -1,0 +1,17 @@
+(ARCTools Version 2.0.2)
+ HexLoc     DecLoc    MachWord   Label        Instruction                Comment
+                                              .org 2048                  
+00000800  0000002048            prog:                                    ! Your assembly code here
+00000804  0000002052  c200281c                ld [2076], %r1             
+00000808  0000002056  85306017                srl %r1, 23, %r2           ! shift right by 23 bits; exponent now in lower 8 bits of r2
+0000080c  0000002060  8408a0ff                and %r2, 255, %r2          ! mask off to isolate the exponent bits
+00000810  0000002064  8420a07f                sub %r2, 127, %r2          ! subtract the bias (127) from the exponent
+00000814  0000002068  c4202820                st %r2, [2080]             ! store the computed exponent result into memory location exp
+00000818  0000002072  ffffffff                halt                       
+0000081c  0000002076  c14a0000  flt:                                     ! 32-bit float to load
+00000820  0000002080  00000000  exp:                                     ! store exponent as integer here
+
+--- Symbol Table ---
+prog: 2048
+exp: 2080
+flt: 2076

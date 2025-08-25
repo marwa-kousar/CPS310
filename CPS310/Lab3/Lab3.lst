@@ -1,0 +1,435 @@
+(ARCTools Version 2.1.2)
+ HexLoc     DecLoc    MachWord   Label        Instruction                Comment
+                                              .org 2048                  
+                                                                         
+                                                                         ! REGISTERS
+                                                                         ! 1  = BASE 0x3FFFC0
+                                                                         ! 2  = Input signal
+                                                                         ! 3  = Input from user
+                                                                         ! 4  = Output signal
+                                                                         ! 5  = Input iterations counter 3
+                                                                         ! 6  = Storage index
+                                                                         ! 7  = test digits
+                                                                         ! 8  = Print register, hold address to print subroutine.
+                                                                         ! 9  = print indexer
+                                                                         ! 10 = print character
+                                                                         ! 20 = pow base storage
+                                                                         ! 22 = result print assistance flag
+                                                                         ! 23 = result print assistance index
+                                                                         ! 25 = arthimetic sign switch
+                                                                         ! 26 = math helper
+                                                                         ! 27 = result print assitance
+                                                                         ! 28 = 1st digit
+                                                                         ! 29 = arthimetic sign
+                                                                         ! 30 = 2nd digit
+                                                                         ! 31 = final result
+                                                                         ! FINALIZE REGISTERS
+                                                                         ! 12 = finalize temporary storage
+                                                                         ! 16-23 = storing bits for print
+                                                                         
+                                                                         
+                                              .equ 0x3fffc0              
+                                              .equ 0x0                   
+                                              .equ 0x4                   
+                                              .equ 0x8                   
+                                              .equ 0xc                   
+                                                                         
+00000800  0000002048  00000003  iter:                                    ! iterations counter
+                                                                         
+00000804  0000002052  00000049  errMsg:                                  ! string - Invalid input!
+00000808  0000002056  0000006e
+0000080c  0000002060  00000076
+00000810  0000002064  00000061
+00000814  0000002068  0000006c                                           
+00000818  0000002072  00000069
+0000081c  0000002076  00000064
+00000820  0000002080  00000020
+00000824  0000002084  00000069                                           
+00000828  0000002088  0000006e
+0000082c  0000002092  00000070
+00000830  0000002096  00000075
+00000834  0000002100  00000074                                           
+00000838  0000002104  00000021
+0000083c  0000002108  00000000
+                                                                         
+00000840  0000002112  00000020  equal:                                   ! string -  = 
+00000844  0000002116  0000003d
+00000848  0000002120  00000020
+0000084c  0000002124  00000000
+00000850  0000002128  00000030  hexPrefix:                               ! string - 0x
+00000854  0000002132  00000078
+00000858  0000002136  00000000
+0000085c  0000002140  00000000  charCode:                                
+00000860  0000002144  00000000
+                                                                         
+00000864  0000002148  82084000  main:         and %r1, %r0, %r1          
+00000868  0000002152  8c098000                and %r6, %r0, %r6          
+0000086c  0000002156  033fffc0                sethi 4194240, %r1         
+00000870  0000002160  ca002800                ld [2048], %r5             
+00000874  0000002164  0d000af0                sethi 2800, %r6            ! store address of %r6
+00000878  0000002168  8d31a00a                srl %r6, 10, %r6           
+0000087c  0000002172  400000a3                call 163                   ! call - reset r6
+                                                                         
+                                                                         
+00000880  0000002176  ffffffff  iwait:        halt                       
+00000884  0000002180  c408600c                ldub %r1, [12], %r2        ! wait for input
+00000888  0000002184  8488a080                andcc %r2, 128, %r2        ! check if its ready
+0000088c  0000002188  02bffffd                be -3                      ! proceed unless its 0
+                                                                         
+00000890  0000002192  c6086008                ldub %r1, [8], %r3         ! get char input
+                                                                         
+00000894  0000002196  c6218000                st %r3, %r6                ! store char to [char + index]
+00000898  0000002200  8c01a004                add %r6, 4, %r6            ! increment storage index
+0000089c  0000002204  8a817fff                addcc %r5, -1, %r5         ! decrement iteration
+000008a0  0000002208  14bffff8                bg -8                      ! repurpose and go back to iwait:
+000008a4  0000002212  40000099                call 153                   ! call - reset r6
+000008a8  0000002216  4000009b                call 155                   ! call - parse input values
+                                                                         
+                                                                         
+000008ac  0000002220  b2174000                or %r29, %r0, %r25         ! copy sign to r25
+000008b0  0000002224  b2867fff                addcc %r25, -1, %r25       ! test +
+000008b4  0000002228  0c8000da                bneg 218                   
+000008b8  0000002232  b2867fff                addcc %r25, -1, %r25       ! test -
+000008bc  0000002236  0c8000db                bneg 219                   
+000008c0  0000002240  b2867fff                addcc %r25, -1, %r25       ! test *
+000008c4  0000002244  0c8000dc                bneg 220                   
+000008c8  0000002248  b2867fff                addcc %r25, -1, %r25       ! test /
+000008cc  0000002252  0c8000e1                bneg 225                   
+000008d0  0000002256  b2867fff                addcc %r25, -1, %r25       ! test ^
+000008d4  0000002260  0c8000e6                bneg 230                   
+                                                                         
+000008d8  0000002264  4000008c  finalize:     call 140                   ! reset r6
+                                                                         
+000008dc  0000002268  11000850                sethi 2128, %r8            ! print 0x prefix
+000008e0  0000002272  9132200a                srl %r8, 10, %r8           
+000008e4  0000002276  40000058                call 88                    
+                                                                         
+000008e8  0000002280  8c01a00c                add %r6, 12, %r6           ! offset r6 by 12
+000008ec  0000002284  fe218000                st %r31, %r6               ! store results
+                                                                         
+000008f0  0000002288  e0098000                ldub %r6, %r16             ! extract most significant byte r16
+000008f4  0000002292  a1342004                srl %r16, 4, %r16          ! eliminate lower 4 bits
+000008f8  0000002296  98a42009                subcc %r16, 9, %r12        ! test if its 0-9, use r12 as ASCII storage
+000008fc  0000002300  04800002                ble 2                      ! if neg then its num, jump to num
+00000900  0000002304  98832007                addcc %r12, 7, %r12        ! else its A-F, add alpha offset
+00000904  0000002308  98832039  num1:         addcc %r12, 57, %r12       ! add number offet
+00000908  0000002312  1100085c                sethi 2140, %r8            ! prepare r8 
+0000090c  0000002316  9132200a                srl %r8, 10, %r8           
+00000910  0000002320  d8220000                st %r12, %r8               ! set r12 to r8 (print register)
+00000914  0000002324  4000004c                call 76                    
+                                                                         
+00000918  0000002328  e2098000                ldub %r6, %r17             ! extract most significant byte to r17
+0000091c  0000002332  a32c601c                sll %r17, 28, %r17         
+00000920  0000002336  a334601c                srl %r17, 28, %r17         
+00000924  0000002340  98a46009                subcc %r17, 9, %r12        
+00000928  0000002344  04800002                ble 2                      
+0000092c  0000002348  98832007                addcc %r12, 7, %r12        
+00000930  0000002352  98832039  num2:         addcc %r12, 57, %r12       
+00000934  0000002356  1100085c                sethi 2140, %r8            
+00000938  0000002360  9132200a                srl %r8, 10, %r8           
+0000093c  0000002364  d8220000                st %r12, %r8               
+00000940  0000002368  40000041                call 65                    
+                                                                         
+00000944  0000002372  e409a001                ldub %r6, [1], %r18        ! extract 2nd most significant byte to r18
+00000948  0000002376  a534a004                srl %r18, 4, %r18          
+0000094c  0000002380  98a4a009                subcc %r18, 9, %r12        
+00000950  0000002384  04800002                ble 2                      
+00000954  0000002388  98832007                addcc %r12, 7, %r12        
+00000958  0000002392  98832039  num3:         addcc %r12, 57, %r12       
+0000095c  0000002396  1100085c                sethi 2140, %r8            
+00000960  0000002400  9132200a                srl %r8, 10, %r8           
+00000964  0000002404  d8220000                st %r12, %r8               
+00000968  0000002408  40000037                call 55                    
+                                                                         
+0000096c  0000002412  e609a001                ldub %r6, [1], %r19        ! extract 2nd most significant byte to r19
+00000970  0000002416  a72ce01c                sll %r19, 28, %r19         
+00000974  0000002420  a734e01c                srl %r19, 28, %r19         
+00000978  0000002424  98a4e009                subcc %r19, 9, %r12        
+0000097c  0000002428  04800002                ble 2                      
+00000980  0000002432  98832007                addcc %r12, 7, %r12        
+00000984  0000002436  98832039  num4:         addcc %r12, 57, %r12       
+00000988  0000002440  1100085c                sethi 2140, %r8            
+0000098c  0000002444  9132200a                srl %r8, 10, %r8           
+00000990  0000002448  d8220000                st %r12, %r8               
+00000994  0000002452  4000002c                call 44                    
+                                                                         
+00000998  0000002456  e809a002                ldub %r6, [2], %r20        ! extract 3rd most significant byte to r20
+0000099c  0000002460  a9352004                srl %r20, 4, %r20          
+000009a0  0000002464  98a52009                subcc %r20, 9, %r12        
+000009a4  0000002468  04800002                ble 2                      
+000009a8  0000002472  98832007                addcc %r12, 7, %r12        
+000009ac  0000002476  98832039  num5:         addcc %r12, 57, %r12       
+000009b0  0000002480  1100085c                sethi 2140, %r8            
+000009b4  0000002484  9132200a                srl %r8, 10, %r8           
+000009b8  0000002488  d8220000                st %r12, %r8               
+000009bc  0000002492  40000022                call 34                    
+                                                                         
+000009c0  0000002496  ea09a002                ldub %r6, [2], %r21        ! extract 3rd most significant byte  to r21
+000009c4  0000002500  ab2d601c                sll %r21, 28, %r21         
+000009c8  0000002504  ab35601c                srl %r21, 28, %r21         
+000009cc  0000002508  98a56009                subcc %r21, 9, %r12        
+000009d0  0000002512  04800002                ble 2                      
+000009d4  0000002516  98832007                addcc %r12, 7, %r12        
+000009d8  0000002520  98832039  num6:         addcc %r12, 57, %r12       
+000009dc  0000002524  1100085c                sethi 2140, %r8            
+000009e0  0000002528  9132200a                srl %r8, 10, %r8           
+000009e4  0000002532  d8220000                st %r12, %r8               
+000009e8  0000002536  40000017                call 23                    
+                                                                         
+000009ec  0000002540  ec09a003                ldub %r6, [3], %r22        ! extract least significant byte to r22
+000009f0  0000002544  ad35a004                srl %r22, 4, %r22          
+000009f4  0000002548  98a5a009                subcc %r22, 9, %r12        
+000009f8  0000002552  04800002                ble 2                      
+000009fc  0000002556  98832007                addcc %r12, 7, %r12        
+00000a00  0000002560  98832039  num7:         addcc %r12, 57, %r12       
+00000a04  0000002564  1100085c                sethi 2140, %r8            
+00000a08  0000002568  9132200a                srl %r8, 10, %r8           
+00000a0c  0000002572  d8220000                st %r12, %r8               
+00000a10  0000002576  4000000d                call 13                    
+                                                                         
+00000a14  0000002580  ee09a003                ldub %r6, [3], %r23        ! extract least significant byte  to r23
+00000a18  0000002584  af2de01c                sll %r23, 28, %r23         
+00000a1c  0000002588  af35e01c                srl %r23, 28, %r23         
+00000a20  0000002592  98a5e009                subcc %r23, 9, %r12        
+00000a24  0000002596  04800002                ble 2                      
+00000a28  0000002600  98832007                addcc %r12, 7, %r12        
+00000a2c  0000002604  98832039  num8:         addcc %r12, 57, %r12       
+00000a30  0000002608  1100085c                sethi 2140, %r8            
+00000a34  0000002612  9132200a                srl %r8, 10, %r8           
+00000a38  0000002616  d8220000                st %r12, %r8               
+00000a3c  0000002620  40000002                call 2                     
+                                                                         
+                                                                         
+00000a40  0000002624  ffffffff  done:         halt                       ! PROGRAM TERMINATES 
+                                                                         
+                                                                         
+                                                                         ! ----------------------------------------
+                                                                         ! print Subroutine. r8 stores address of printString
+00000a44  0000002628  920a4000  print:        and %r9, %r0, %r9          ! reset string indexer
+00000a48  0000002632  d4020009  printLoop:    ld %r8, %r9, %r10          ! load char at r8 + r9
+00000a4c  0000002636  80928000                orcc %r10, %r0, %r0        
+00000a50  0000002640  02800007                be 7                       
+                                                                         
+00000a54  0000002644  c8086004  printOWait:   ldub %r1, [4], %r4         ! get byte from CSTAT
+00000a58  0000002648  88892080                andcc %r4, 128, %r4        ! check if CSTAT is ready
+00000a5c  0000002652  02bffffe                be -2                      ! If no (0), goto owait
+                                                                         
+00000a60  0000002656  d4286000                stb %r10, %r1, [0]         ! write one byte console
+00000a64  0000002660  92026004                add %r9, 4, %r9            ! +4 to indexer
+00000a68  0000002664  10bffff8                ba -8                      ! do again
+                                                                         
+00000a6c  0000002668  81c3e004  printEnd:     jmpl %r15, 4, %r0          ! return
+                                                                         
+                                                                         ! ----------------------------------------
+                                                                         ! Shared - storage. 3 for equation, 4th for answer, 5th for 0x0
+                                              .org 2800                  
+00000af0  0000002800            char:         .dwb 5                     ! reserve space at 2800
+                                                                         
+00000b04  0000002820  ffffffff                halt                       
+                                                                         
+                                                                         
+                                                                         ! ----------------------------------------
+                                                                         ! subroutine: reset %r6 back to original state
+00000b08  0000002824  0d000af0  resetR6:      sethi 2800, %r6            ! store address of %r6
+00000b0c  0000002828  8d31a00a                srl %r6, 10, %r6           
+00000b10  0000002832  81c3e004                jmpl %r15, 4, %r0          ! return
+                                                                         
+                                                                         
+                                                                         ! ----------------------------------------
+                                                                         ! subroutine: test error
+00000b14  0000002836  8e09c000  testError:    and %r7, %r0, %r7          
+00000b18  0000002840  ce002af0                ld [2800], %r7             ! load first char to r7, expects single number
+00000b1c  0000002844  8e81ffd0                addcc %r7, -48, %r7        
+00000b20  0000002848  0c800015                bneg 21                    
+00000b24  0000002852  8e81fff7                addcc %r7, -9, %r7         
+00000b28  0000002856  14800013                bg 19                      
+                                                                         
+00000b2c  0000002860  8e09c000                and %r7, %r0, %r7          
+00000b30  0000002864  ce002af8                ld [2808], %r7             ! load third char to r7, expects single number
+00000b34  0000002868  8e81ffd0                addcc %r7, -48, %r7        
+00000b38  0000002872  0c80000f                bneg 15                    
+00000b3c  0000002876  8e81fff7                addcc %r7, -9, %r7         
+00000b40  0000002880  1480000d                bg 13                      
+                                                                         
+00000b44  0000002884  8e09c000                and %r7, %r0, %r7          
+00000b48  0000002888  ce002af4                ld [2804], %r7             ! load third char to r7, expects single +-*/^
+00000b4c  0000002892  8e81ffd6                addcc %r7, -42, %r7        ! test *
+00000b50  0000002896  0280000d                be 13                      
+00000b54  0000002900  8e81ffff                addcc %r7, -1, %r7         ! test +
+00000b58  0000002904  0280000b                be 11                      
+00000b5c  0000002908  8e81fffe                addcc %r7, -2, %r7         ! test -
+00000b60  0000002912  02800009                be 9                       
+00000b64  0000002916  8e81fffe                addcc %r7, -2, %r7         ! test /
+00000b68  0000002920  02800007                be 7                       
+00000b6c  0000002924  8e81ffd1                addcc %r7, -47, %r7        ! test ^
+00000b70  0000002928  02800005                be 5                       
+                                                                         
+00000b74  0000002932  11000804  testFailed:   sethi 2052, %r8            ! load error message address
+00000b78  0000002936  9132200a                srl %r8, 10, %r8           
+00000b7c  0000002940  7fffffb2                call -78                   ! call - print sub
+00000b80  0000002944  ffffffff                halt                       ! PROGRAM TERMINATES
+                                                                         
+                                                                         ! subroutine for postprocessing after successful entry
+                                                                         ! r28 shows 1st digit
+                                                                         ! r29 shows symbol: 0 = + ; 1 = - ; 2 = * ; 3 = / ; 4 = ^
+                                                                         ! r30 shows 2nd digit
+00000b84  0000002948  a613c000  testSuccess:  or %r15, %r0, %r19         ! backup r15 to secondary jump
+                                                                         ! print valid formula entry
+00000b88  0000002952  11000af0                sethi 2800, %r8            ! load formula
+00000b8c  0000002956  9132200a                srl %r8, 10, %r8           
+00000b90  0000002960  7fffffad                call -83                   ! call - print subroutine
+00000b94  0000002964  11000840                sethi 2112, %r8            ! load equal sign
+00000b98  0000002968  9132200a                srl %r8, 10, %r8           
+00000b9c  0000002972  7fffffaa                call -86                   ! call - print subroutine
+00000ba0  0000002976  9e14c000                or %r19, %r0, %r15         ! copy secondary jump back to r15
+                                                                         
+00000ba4  0000002980  8e09c000                and %r7, %r0, %r7          ! clear r7
+00000ba8  0000002984  ce002af0                ld [2800], %r7             ! load first digit
+00000bac  0000002988  8e01ffd0                add %r7, -48, %r7          ! 1st into number
+00000bb0  0000002992  b811c01c                or %r7, %r28, %r28         ! r28 - 1st digit for visual purpose
+00000bb4  0000002996  ce202af0                st %r7, [2800]             ! store back into original memory 
+                                                                         
+00000bb8  0000003000  8e09c000                and %r7, %r0, %r7          ! clear r7
+00000bbc  0000003004  ce002af8                ld [2808], %r7             ! load 2nd digit
+00000bc0  0000003008  8e01ffd0                add %r7, -48, %r7          ! transform into number
+00000bc4  0000003012  bc11c01e                or %r7, %r30, %r30         ! r30 - 2nd digit for visual purpose
+00000bc8  0000003016  ce202af8                st %r7, [2808]             ! store back into original memory 
+                                                                         
+00000bcc  0000003020  8e09c000                and %r7, %r0, %r7          ! clear r7
+00000bd0  0000003024  ba0f4000                and %r29, %r0, %r29        ! r29 - math sign storage
+00000bd4  0000003028  ce002af4                ld [2804], %r7             ! load math sign
+00000bd8  0000003032  8e81ffd5                addcc %r7, -43, %r7        ! check +
+00000bdc  0000003036  0280000d                be 13                      
+00000be0  0000003040  ba076001                add %r29, 1, %r29          
+00000be4  0000003044  8e81fffe                addcc %r7, -2, %r7         ! check -
+00000be8  0000003048  0280000a                be 10                      
+00000bec  0000003052  ba076001                add %r29, 1, %r29          
+00000bf0  0000003056  8e81e003                addcc %r7, 3, %r7          ! check *
+00000bf4  0000003060  02800007                be 7                       
+00000bf8  0000003064  ba076001                add %r29, 1, %r29          
+00000bfc  0000003068  8e81fffb                addcc %r7, -5, %r7         ! check /
+00000c00  0000003072  02800004                be 4                       
+00000c04  0000003076  ba076001                add %r29, 1, %r29          
+00000c08  0000003080  8e81ffd1                addcc %r7, -47, %r7        ! check ^
+00000c0c  0000003084  02800001                be 1                       
+                                                                         
+00000c10  0000003088            testSuccessExit:                             
+00000c14  0000003092  fa202af4                st %r29, [2804]            ! store back into original memory 
+00000c18  0000003096  81c3e004                jmpl %r15, 4, %r0          ! return
+                                                                         
+                                                                         ! ----------------------------------------
+                                                                         ! subroutine for addition
+00000c1c  0000003100  be0fc000  case0:        and %r31, %r0, %r31        ! clear r31
+00000c20  0000003104  be07001e                add %r28, %r30, %r31       ! addition
+00000c24  0000003108  10bfff2d                ba -211                    ! return
+                                                                         
+                                                                         
+                                                                         ! ----------------------------------------
+                                                                         ! subroutine for subtraction
+00000c28  0000003112  be0fc000  case1:        and %r31, %r0, %r31        ! clear r31
+00000c2c  0000003116  be27001e                sub %r28, %r30, %r31       ! subtraction
+00000c30  0000003120  10bfff2a                ba -214                    ! return
+                                                                         
+                                                                         ! ----------------------------------------
+                                                                         ! subroutine for multiplication
+00000c34  0000003124  be0fc000  case2:        and %r31, %r0, %r31        ! clear r31
+00000c38  0000003128  b40e8000                and %r26, %r0, %r26        ! clear r26
+00000c3c  0000003132  b410001e                or %r0, %r30, %r26         ! copy 2nd digit (r30) to r26 for processing
+00000c40  0000003136  b486bfff  mult:         addcc %r26, -1, %r26       ! decrement counter
+00000c44  0000003140  0cbfff25                bneg -219                  ! if counter is negative, return
+00000c48  0000003144  be07001f                add %r28, %r31, %r31       ! addition		
+00000c4c  0000003148  10bffffd                ba -3                      ! always go to mult:
+                                                                         
+                                                                         
+                                                                         ! ----------------------------------------
+                                                                         ! subroutine for division
+00000c50  0000003152  be0fc000  case3:        and %r31, %r0, %r31        ! clear r31
+00000c54  0000003156  b40e8000                and %r26, %r0, %r26        ! clear r26
+00000c58  0000003160  b410001c                or %r0, %r28, %r26         ! copy 1st digit (r28) to r26 for processing
+00000c5c  0000003164  b4a6801e  div:          subcc %r26, %r30, %r26     ! division
+00000c60  0000003168  0cbfff1e                bneg -226                  ! if dividend is negative, return
+00000c64  0000003172  be07e001                add %r31, 1, %r31          ! increment quotient by 1
+00000c68  0000003176  10bffffd                ba -3                      ! always goto div:
+                                                                         
+                                                                         ! ----------------------------------------
+                                                                         ! subroutine for exponent
+00000c6c  0000003180  be0fc000  case4:        and %r31, %r0, %r31        ! clear r31
+00000c70  0000003184  b00e0000                and %r24, %r0, %r24        ! clear r24
+00000c74  0000003188  b40e8000                and %r26, %r0, %r26        ! clear r26
+00000c78  0000003192  b60ec000                and %r27, %r0, %r27        ! clear r27
+                                                                         
+00000c7c  0000003196  a890001c                orcc %r0, %r28, %r20       ! copy base to r20, test for special cases
+00000c80  0000003200  02800011                be 17                      ! branch on 0 base
+00000c84  0000003204  b490001e                orcc %r0, %r30, %r26       ! copy exponent to r26, test for special cases
+00000c88  0000003208  0280000d                be 13                      ! branch on 0 expo
+                                                                         
+00000c8c  0000003212  b486bfff  pow:          addcc %r26, -1, %r26       ! -1 exp.
+00000c90  0000003216  0480000a                ble 10                     ! ends if power is 0.
+                                                                         
+00000c94  0000003220  be0fc000                and %r31, %r0, %r31        ! clear result r31
+00000c98  0000003224  b010001c                or %r0, %r28, %r24         ! reset/store multiply counter
+00000c9c  0000003228            powMulti:                                
+00000ca0  0000003232  be05001f                add %r20, %r31, %r31       ! addition
+00000ca4  0000003236  b0863fff                addcc %r24, -1, %r24       ! decrement multiply counter
+00000ca8  0000003240  14bffffd                bg -3                      ! If > 0, goto powMulti:
+                                                                         
+00000cac  0000003244  a80d0000                and %r20, %r0, %r20        ! clear the base
+00000cb0  0000003248  a817c000                or %r31, %r0, %r20         ! set new base
+                                                                         
+00000cb4  0000003252  10bffff6                ba -10                     
+                                                                         
+00000cb8  0000003256  10bfff08  powResult:    ba -248                    ! return
+                                                                         
+                                                                         ! special cases with zeros.
+00000cbc  0000003260  be07e001  zeroExpo:     add %r31, 1, %r31          ! any zero expo equals to 1.
+00000cc0  0000003264  10bfff06                ba -250                    ! return
+00000cc4  0000003268  8090001e  zeroBase:     orcc %r0, %r30, %r0        ! base is 0, test if expo is also 0
+00000cc8  0000003272  14bfff04                bg -252                    ! if (expo > 0) -> answer = 0, jump to finalize
+00000ccc  0000003276  10bfffaa                ba -86                     ! else return error.
+                                                                         
+
+--- Symbol Table ---
+main: 2148
+errMsg: 2052
+done: 2624
+testSuccessExit: 3088
+iwait: 2176
+testSuccess: 2948
+equal: 2112
+num8: 2604
+num7: 2560
+num6: 2520
+num5: 2476
+num4: 2436
+num3: 2392
+iter: 2048
+num2: 2352
+num1: 2308
+zeroBase: 3268
+pow: 3212
+testFailed: 2932
+printOWait: 2644
+powResult: 3256
+CIN: 8
+resetR6: 2824
+CICTL: 12
+mult: 3136
+hexPrefix: 2128
+COUT: 0
+char: 2800
+BASE: 4194240
+finalize: 2264
+testError: 2836
+charCode: 2140
+printEnd: 2668
+print: 2628
+printLoop: 2632
+case4: 3180
+div: 3164
+case3: 3152
+CSTAT: 4
+case2: 3124
+case1: 3112
+case0: 3100
+powMulti: 3228
+zeroExpo: 3260
