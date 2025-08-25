@@ -1,6 +1,5 @@
 // Lab 6
 // Marwa Kousar
-// 501159935
 
 #include "pitches.h" // Includes note-frequency definitions (NOTE_C3 = 131 Hz, etc.)
 #define BUZZER_CLOCK 16000000/8 // Define the buzzer timer clock frequency (16 MHz / 8 due to prescaler)
