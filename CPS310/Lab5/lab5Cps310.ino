@@ -1,6 +1,6 @@
 // Lab 5
 // Marwa Kousar
-// Student ID: 501159935
+// Student ID:
 /*
 Overview:
 This program uses the Arduino’s ADC (Analog-to-Digital Converter) and digital I/O 
